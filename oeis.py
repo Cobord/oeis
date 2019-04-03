@@ -23,14 +23,15 @@ class BagOfStuffFromTheInternet:
         self.contents = ""
 
     def callback(self, buf):
-        self.contents += buf
+        self.contents += str(buf)
 
 #----------------------------------------------------------------------
 # Query the online encyclopedia of integer sequences, requesting at most
 # n responses.  Return everything it says as a string.
-def rawquery(sequence, n):
+def rawquery(sequence, n, k):
     querystr = "http://oeis.org/search?q="
     querystr += ",".join([str(x) for x in sequence])
+    querystr += "+"+k
     querystr += "&n=" + str(n) + "&fmt=text"
 
     t = BagOfStuffFromTheInternet()
@@ -71,7 +72,7 @@ def oeis_parse(response):
     for line in response.split("\n"):
         match = re.match("Showing (.*)", line)
         if match:
-            print "Showing " + match.group(1) + " matching sequences."
+            print("Showing " + match.group(1) + " matching sequences.")
         match = re.match("\%(.)\s+(A\d+)\s+(.*)$", line)
         if match:
             field = match.group(1)
@@ -91,15 +92,16 @@ def oeis_parse(response):
 
 parser = OptionParser()
 parser.add_option("-n",  default=10, type="int", dest="num_responses")
+parser.add_option("-k",  default="", type="string", dest="keyword")
 
 (options, positional_arguments) = parser.parse_args()
 sequence = [int(arg) for arg in positional_arguments]
 
-what_oeis_said = rawquery(sequence, options.num_responses)
+what_oeis_said = rawquery(sequence, options.num_responses,options.keyword)
 records = oeis_parse(what_oeis_said)
 
 for record in records:
-    print record["Anumber"][0], " ", record["N"][0]
+    print(record["Anumber"][0], " ", record["N"][0])
 
 
 
